@@ -1,0 +1,18 @@
+apiVersion: 1
+
+datasources:
+  - name: CSV
+    type: marcusolsson-csv-datasource
+    orgId: 1
+    typeName: CSV
+    typeLogoUrl: public/plugins/marcusolsson-csv-datasource/img/logo.svg
+    access: proxy
+    url: /home/grafana/project/data/data.csv
+    password:
+    user:
+    database:
+    basicAuth: false
+    isDefault: true
+    readOnly: false
+    jsonData:
+      storage: local
