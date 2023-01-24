@@ -1,0 +1,83 @@
+version: "3.3"
+
+networks:
+  hadoop:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/24
+
+volumes:
+  hadoop-data:
+
+services:
+  hadoop-master:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hadoop-master
+    hostname: hadoop-master
+    networks:
+      hadoop:
+        ipv4_address: 172.18.0.2
+    environment:
+      - TWITTER_API_KEY=PASTE_API_KEY_HERE
+    ports:
+      - "50070:50070"
+      - "8088:8088"
+      - "7077:7077"
+      - "16010:16010"
+      - "22"
+    volumes:
+      - hadoop-data:/project/data
+    depends_on:
+      - "hadoop-slave1"
+      - "hadoop-slave2"
+
+  hadoop-slave1:
+    image: totofunku/bigdata-cours:latest
+    container_name: hadoop-slave1
+    hostname: hadoop-slave1
+    networks:
+      hadoop:
+        ipv4_address: 172.18.0.3
+    ports:
+      - "8040:8042"
+      - "22"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        apt-get install net-tools && service ssh restart
+        sleep infinity
+
+  hadoop-slave2:
+    image: totofunku/bigdata-cours:latest
+    container_name: hadoop-slave2
+    hostname: hadoop-slave2
+    networks:
+      hadoop:
+        ipv4_address: 172.18.0.4
+    ports:
+      - "8041:8042"
+      - "22"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        apt-get install net-tools && service ssh restart
+        sleep infinity
+
+  hadoop-grafana:
+    image: grafana/grafana
+    container_name: hadoop-grafana
+    ports:
+      -   "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/conf/custom.ini:/etc/grafana/grafana.ini
+      - hadoop-data:/home/grafana/project/data
+    environment:
+      - GF_INSTALL_PLUGINS=marcusolsson-csv-datasource
+    restart: unless-stopped
